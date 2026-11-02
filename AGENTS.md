@@ -48,8 +48,10 @@ additional archive restrictions. Do not alter the pinned archive for Beam work.
   eligibility, the flagship mint, vaults, and distribution rules are open.
   The user's Beam fee split is 42/5/3 nominal basis points for community,
   treasury and founder. Preserve the creator payout and creator-selected
-  wallet system. Whether its fee comes from the community share or an
-  additional charge remains undecided; do not assume either. Disclose each
+  wallet system. The user selected creator funding from the community share.
+  New AMM v4 routing deducts creator payouts from that share; do not add them
+  on top of the 50-bps Beam component. The inherited curve fee CPI remains
+  separate work and must not be described as already enforcing this policy. Disclose each
   applicable curve, creator, migration, and Raydium pool fee; never promise returns.
 - On-chain reconstruction does not provide Pump's website, streaming, callout,
   or charity service backends. Treat those as independent feature work with

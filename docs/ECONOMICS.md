@@ -1,35 +1,79 @@
 # Community-first economics
 
-The user selected a **50-basis-point Beam allocation**: 42 nominal bps for a community allocation, 5 bps for treasury, and 3 bps for founder. Preserve the creator payout and creator-selected wallet system. The funding choice is still open: creator payouts might come from the 42-bps community share or an additional charge. Neither treatment is approved yet. The quoted competitor fee split has not been independently verified.
+The user selected a 50-basis-point Beam component: 42 nominal bps community,
+5 treasury and 3 founder. Creator payouts are funded from the community
+allocation. They are not an extra charge on top of this Beam component.
 
-## Rounding
+## Draft AMM v4 routing policy
 
-1. Compute the Beam allocation fee once with Pump's retained ceiling-fee routine at 50 bps.
-2. Compute the founder share as `floor(total_fee × 6 / 100)` and the treasury share as `floor(total_fee × 10 / 100)`.
-3. Give the remainder to the community.
+The new AMM v4 route uses the strict-cap allocation helper carried forward
+from PR #23. It rounds the total once with the retained ceiling-fee routine,
+caps treasury at floor(notional * 5 / 10,000) and founder at
+floor(notional * 3 / 10,000), and assigns the remainder to community.
 
-As an illustration of the allocation math alone, on 100 SOL notional this component is 0.5 SOL: 0.42 community, 0.05 treasury, and 0.03 founder. This is **not an all-in trade quote** while creator payout funding remains undecided. On a one-lamport trade, the rounded component is one lamport, all assigned to the community. Quotes must disclose effective fees on dust trades and every applicable fee component.
+Global authority and the current creator jointly configure payout
+recipients and a creator rate from 0 through 42 bps. Rates exceeding that
+budget reject; they are never silently added to the trader's charge or clipped.
+The creator share uses ceiling rounding and is deducted from the available
+community amount. The remainder stays in the configured community vault.
 
-`beam_economics.rs` implements only Beam component allocation arithmetic. It is not yet wired into the recovered fee-program CPI, recipient routing or an executable keeper. The current inherited trade code calculates creator fees separately; that describes the present source, **not approval to double-charge in Beam's final policy**. Beam-controlled configuration/vaults must preserve and test creator payout semantics after the funding choice is made. The 42/5/3 split is a requirement for the future Beam implementation, not an enforced live trading fee today.
+On 100 SOL notional with a selected 30-bps creator rate, the Beam component is
+0.5 SOL: 0.30 creator, 0.12 remaining community, 0.05 treasury and 0.03 founder.
+On a one-lamport notional the rounded total is one lamport; with a positive
+creator rate it belongs to the creator. Effective dust fees must be disclosed.
 
-The requested direction uses the community allocation for holder rewards and
-flagship buybacks. If creator payouts are funded from that allocation, those
-uses draw from its remainder. A 50/50 split of the available amount is a
-provisional test setting, not deployed economics. Holder eligibility, the
-flagship mint, recipient vaults, and execution rules have not been selected.
+Policy updates advance the rights revision and disable routing until both
+parties explicitly re-enable it. Historical vault balances keep their original
+beneficiaries. Policies start disabled. Both authority and creator must sign to enable the
+route. The user specifies minimum swap output, maximum Beam fee and the
+expected rights revision. Buys use actual WSOL input as notional; sells use the
+observed WSOL output. A failed CPI or exceeded bound rolls back the swap and
+all fee transfers together. Fee credits follow successful native-SOL transfers.
 
-## After graduation
+The swap uses the user's WSOL and classic-SPL accounts. The Beam fee is paid
+separately in native SOL by the signing user. Vault-creation rent and transaction
+fees are additional; the maximum Beam fee does not represent a total wallet
+debit cap. No token account is silently unwrapped or closed.
 
-Raydium charges its selected on-chain pool configuration. Beam cannot invent a Raydium share such as 0.10%. Quotes must distinguish Raydium pool fees, creator fees, Beam fees, and migration fees, and must not silently stack the curve's 50 bps on top after graduation. The user selected Raydium AMM v4; the existing gated CPMM migration code is a superseded candidate and does not satisfy that venue requirement.
+Raydium's own pool fee is separate and reflected in swap output. Therefore
+0.50% is not an all-in fee quote. Direct Raydium trades bypass this Beam wrapper
+and do not fund Beam vaults. The wrapper creates no LP fee entitlement.
 
-Recurring buybacks need a collectible fee source. The currently gated CPMM migration candidate burns all LP received by Beam. That removes its position; it does not retain an LP claim to harvest. The selected AMM v4 venue has no Beam-controlled creator or protocol fee switch; its LP fee accrues in pool reserves and is realized through LP withdrawal. Burning all AMM v4 LP would likewise relinquish that claim. Raydium's [Burn & Earn](https://docs.raydium.io/user-flows/burn-and-earn) does not support AMM v4. A Beam 50-bps post-graduation swap fee cannot be assumed from AMM v4. Until an independently reviewed custody/fee-rights design exists, community rewards and buybacks can be funded only from collected pre-graduation proceeds or another explicitly authorized source.
+## Creator payouts, sharing and CTO
 
-Before activation:
+Creator funding is bound to the selected payout wallet or an immutable sharing
+plan. Sharing supports at most eight recipients with weights totaling 10,000.
+Cumulative floor accounting retains rounding dust and prevents payout changes
+from splitting deposits into many small batches. Previous vaults and sharing
+plans remain payable to their original beneficiaries.
 
-- Specify and test a transparent AMM v4 LP custody/escrow arrangement that preserves principal while defining who may realize fees, or another explicitly supported fee mechanism. Do not describe burned LP as continuing fee income.
-- Deny creators, operators and keepers authority to withdraw liquidity principal.
-- Set the post-graduation fee budget using the actual Raydium configuration.
-- Route flagship community proceeds to a dedicated vault, with public buyback receipts and an explicit burn/retention policy for acquired tokens.
-- Bound slippage, price manipulation, account substitutions and keeper reimbursement; isolate execution costs from liquidity principal.
+Normal creator succession requires current creator, successor and Global
+authority signatures. Administrative CTO uses the dedicated existing
+Global.admin_set_creator_authority role plus successor consent. Both change
+future rights only, advance the revision and clear the old donation selection.
+Neither can seize old creator/sharing balances, redirect a historical claim,
+change Raydium's pool authority, or withdraw pool liquidity.
 
-No volume means no revenue or buybacks. A continuing policy does not guarantee returns, price appreciation, execution frequency or perpetual revenue. This is required design work, not completed functionality.
+Donation vaults accept separate explicit deposits to a consented recipient
+registration selected by the creator. Revocation blocks new deposits while
+old credited funds remain claimable. There is no automatic donation surcharge,
+Donate.gg integration, legal charity certification or tax receipt.
+
+## Remaining release and curve boundaries
+
+The inherited curve trade path still uses the retained fee-program CPI and
+has not been rehosted onto this new AMM v4 policy. Its current separately
+calculated creator fees are an implementation gap, not approval to add creator
+fees to the final 50-bps Beam component. Curve fee custody/configuration remains
+the separately owned work in the task ledger.
+
+Migration, LP principal custody, Token-2022 graduation, SBF validation,
+independent review, authenticated deployment/source matching and a complete
+wallet/IDL integration remain release requirements. The retired CPMM
+migration remains disabled. This draft deploys nothing.
+
+Community funds remaining after creator allocation may later support holder
+rewards and flagship buybacks. Holder eligibility, flagship mint, execution
+policy and the provisional 50/50 reward/buyback split still require reviewed
+decisions. No volume means no revenue; no price, return or perpetual-income
+outcome is promised.

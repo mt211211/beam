@@ -44,3 +44,22 @@ These checks do not establish full instruction execution parity, SBF byte identi
 Upstream declares the reconstruction complete and removed captured binaries and its research toolchain. This branch pins the final source; it does not independently re-prove the historical reconstruction claim.
 
 The supplied ATH/fee comparisons motivate a product hypothesis. Different cohorts and sums of separate ATHs do not isolate venue effects or measure liquidity durability. Beam makes no claim that Raydium guarantees better price performance.
+
+## Removal follow-up under review
+
+The follow-up on PR #36 removes compiled foreign CPI clients and foreign PDA
+requirements, adds registered AMM v4 spot quotes and a disabled-by-default
+SwapBaseInV2 route, and supplies Beam-owned creator/sharing/CTO and donation
+accounts. Creator payouts come from community allocation. The design and its
+release boundaries are in [AMM_V4_COMPANION.md](AMM_V4_COMPANION.md).
+
+Local validation passed 34 unit tests, four compatibility groups and one
+native dispatch case in both default/experimental modes, the no-default build,
+and the synthetic local-bank lifecycle in both modes. The local bank uses a
+mock AMM processor with real SPL-token/System CPIs; it is not real Raydium/SBF
+validation. All 380 archive blobs remain unchanged. This source is in draft;
+the earlier baseline statements do not imply these additions are merged.
+
+AMM v4 graduation/LP policy, Token-2022 graduation, inherited curve fee rehosting,
+IDL/wallet integration, independent review and release authorization remain
+separate. No deployment or production completion is claimed.

@@ -1,0 +1,17 @@
+name: AMM v4 companion local-bank checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  synthetic-bank:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      matrix:
+        arguments: ["", "--features experimental-raydium"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.90.0
+      - run: python3 scripts/check_fork.py
+      - run: python3 scripts/check_venue_removal.py
+      - run: cargo test --locked --manifest-path tests/companion-runtime/Cargo.toml ${{ matrix.arguments }}

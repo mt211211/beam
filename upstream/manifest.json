@@ -29,7 +29,9 @@
     "src/migrate.rs",
     "src/migrate_v2.rs",
     "src/multi_hop_curve_swap.rs",
-    "src/creator/admin_cto.rs"
+    "src/creator/admin_cto.rs",
+    "src/util/payments.rs",
+    "src/mayhem_virtual_params.rs"
   ],
   "allowed_added_paths": [
     "src/beam_policy.rs",
@@ -37,7 +39,12 @@
     "tests/compatibility.rs",
     "src/beam_economics.rs",
     "src/beam_amm_v4.rs",
-    "src/beam_pumpswap.rs"
+    "src/beam_pumpswap.rs",
+    "src/beam_amm_v4_companion.rs",
+    "tests/retired_venues.rs",
+    "src/beam_amm_v4_router.rs",
+    "src/beam_amm_v4_quote.rs",
+    "src/beam_amm_v4_sharing.rs"
   ],
   "deployment_status": "not deployed"
 }

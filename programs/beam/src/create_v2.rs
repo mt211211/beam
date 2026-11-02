@@ -2,7 +2,7 @@ use crate::*;
 use spl_type_length_value::variable_len_pack::VariableLenPack;
 use anchor_spl::{token_interface::{self,Mint,TokenAccount},token_2022::Token2022,associated_token::AssociatedToken};
 use anchor_lang::solana_program::{instruction::{Instruction,AccountMeta},program::invoke_signed};
-pub use crate::mayhem::ID as MAYHEM_ID;const UNSUPPORTED_QUOTE_MINT:Pubkey=anchor_lang::solana_program::pubkey!("9pan9bMn5HatX4EJdBwg9VgCa7Uz5HL8N1m5D3NdXejP");const PUMP_QUOTE_MINT:Pubkey=anchor_lang::solana_program::pubkey!("pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn");
+const UNSUPPORTED_QUOTE_MINT:Pubkey=anchor_lang::solana_program::pubkey!("9pan9bMn5HatX4EJdBwg9VgCa7Uz5HL8N1m5D3NdXejP");const PUMP_QUOTE_MINT:Pubkey=anchor_lang::solana_program::pubkey!("pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn");
 #[derive(AnchorSerialize,Clone)]
 pub struct CreationOptionU64(pub u64);
 impl AnchorDeserialize for CreationOptionU64 {
@@ -37,14 +37,14 @@ pub struct CreateV2<'info>{
  pub system_program:Program<'info,System>,
  pub token_program:Program<'info,Token2022>,
  pub associated_token_program:Program<'info,AssociatedToken>,
- /// CHECK: fixed CPI program; Mayhem invocation outside this bounded branch.
- #[account(mut,address=MAYHEM_ID)]pub mayhem_program_id:UncheckedAccount<'info>,
- /// CHECK: canonical Mayhem account, unused for normal creation.
- #[account(seeds=[b"global-params"],bump,seeds::program=MAYHEM_ID)]pub global_params:UncheckedAccount<'info>,
- /// CHECK: canonical Mayhem account, unused for normal creation.
- #[account(mut,seeds=[b"sol-vault"],bump,seeds::program=MAYHEM_ID)]pub sol_vault:UncheckedAccount<'info>,
- /// CHECK: canonical Mayhem account, unused for normal creation.
- #[account(mut,seeds=[b"mayhem-state",mint.key().as_ref()],bump,seeds::program=MAYHEM_ID)]pub mayhem_state:UncheckedAccount<'info>,
+ /// CHECK: Retained unused ABI slot; no Mayhem address or invocation required.
+ #[account(mut)]pub mayhem_program_id:UncheckedAccount<'info>,
+ /// CHECK: Retained unused ABI slot; no foreign PDA validation.
+pub global_params:UncheckedAccount<'info>,
+ /// CHECK: Retained unused ABI slot; no foreign PDA validation.
+ #[account(mut)]pub sol_vault:UncheckedAccount<'info>,
+ /// CHECK: Retained unused ABI slot; no foreign PDA validation.
+ #[account(mut)]pub mayhem_state:UncheckedAccount<'info>,
  /// CHECK: unused for normal creation.
  #[account(mut)]pub mayhem_token_vault:UncheckedAccount<'info>,
 }
@@ -67,7 +67,7 @@ pub use crate::payments::initialize_mayhem;
 // layout-pad
 
 // Client-side instruction/account binding only; no companion implementation.
-pub use crate::mayhem as mayhem_interface;
+// Mayhem CPI bindings removed; compatibility account slots are inert.
 
 
 
@@ -490,9 +490,9 @@ fn record(curve: &BondingCurve, g: &Global, _mint: &Pubkey, tail: &mut &[Account
 
         Ok(Record::Curve { vt: curve.virtual_token_reserves, vq: curve.virtual_quote_reserves, rt: curve.real_token_reserves, rq: curve.real_quote_reserves, pool_base, migration_fee })
     } else {
-        // A graduated ancestor needs a Raydium AMM v4 quote adapter. Do not
-        // accept PumpSwap pool accounts while that adapter is unavailable.
-        crate::pump_quote::graduated_quote_unavailable()
+        // Registered, swap-only AMM v4 pools use authenticated vault reserves.
+        // Historical PumpSwap pool bytes are never accepted by this adapter.
+        crate::beam_amm_v4_quote::graduated_record(_mint, curve, tail)
     }
 }
 // layout-pad(8)
@@ -599,9 +599,9 @@ fn metadata_cpi<'info>(accounts:&(&Program<'info,Token2022>,&InterfaceAccount<'i
 fn mint_supply<'info>(ctx:&Context<'_,'_,'_,'info,CreateV2<'info>>,is_mayhem_mode:bool)->Result<()>{
  let a=&ctx.accounts;let bump=ctx.bumps.mint_authority;
  mint_tokens(a,&*a.associated_bonding_curve,&a.global,&[&[b"mint-authority",&[bump]]])?;
- if is_mayhem_mode {
-  mint_tokens(a,&a.mayhem_token_vault,&a.global,&[&[b"mint-authority",&[bump]]])?;
- }
+ crate::beam_policy::mayhem(is_mayhem_mode)?;
+
+
  let signer:&[&[&[u8]]]=&[&[b"mint-authority",&[bump]]];
  token_interface::set_authority(CpiContext::new_with_signer(a.token_program.to_account_info(),token_interface::SetAuthority{account_or_mint:a.mint.to_account_info(),current_authority:a.mint_authority.to_account_info()},signer),token_interface::spl_token_2022::instruction::AuthorityType::MintTokens,None)
 }

@@ -2,7 +2,7 @@
 
 A Solana launchpad forked from the completed community reconstruction of Pump, with Raydium AMM v4 as the selected secondary venue and Mayhem disabled.
 
-**Status: source fork and host-tested migration candidate. Not deployed. Not audited or complete. Raydium execution is disabled in default builds.**
+**Status: source fork and host-tested migration candidate. Not deployed. Not audited or complete. The retired CPMM migration stays disabled. New AMM v4 routing policies start disabled.**
 
 ## Source baseline
 
@@ -24,11 +24,11 @@ dependency. No percentage can honestly describe whole-product parity yet.
 
 | Goal | Status | What has been shown / what remains |
 | --- | --- | --- |
-| Preserve the recovered Pump source | **Done** | The pinned community archive passes [380 Git-blob checks](docs/VALIDATION.md). In Beam's retained Pump package, 57 files remain byte-identical and nine are declared changes. This is source evidence, not a Beam binary match. |
+| Preserve the recovered Pump source | **Done** | The pinned community archive passes [380 Git-blob checks](docs/VALIDATION.md). In Beam's retained Pump package, 55 files remain byte-identical and eleven are declared changes. This is source evidence, not a Beam binary match. |
 | Keep Pump-style launch and curve trades | **In progress** | [Merged PR #1](https://github.com/shawkkkkk/beam/pull/1) contains the Anchor handlers and selected host tests. Full instruction execution, SBF and live behavior remain unverified. |
-| Remove Mayhem and PumpSwap | **In progress** | Mayhem stays disabled. Legacy PumpSwap entries and the graduated quote reader return `PumpSwapDisabled` before PumpSwap CPIs; there is no PumpSwap fallback. Account constraints, post-graduation creator/CTO rights, and donation instructions are still unresolved. See [the removal audit](docs/PUMPSWAP_REMOVAL.md). Blocked features are not complete. |
+| Remove Mayhem and PumpSwap | **Source replacement in draft** | Foreign CPI bindings and PDA requirements are removed. Retired interfaces reject; normal creation uses inert compatibility slots. Beam-owned AMM v4 routing, registered quotes, creator vaults/sharing/CTO and donation accounts replace venue-specific dependencies. Real-program/SBF and release review remain. See [the removal audit](docs/PUMPSWAP_REMOVAL.md) and [companion design](docs/AMM_V4_COMPANION.md). |
 | Graduate to Raydium AMM v4 | **Blocked** | [PR #5](https://github.com/shawkkkkk/beam/pull/5) retired the wrong-venue CPMM path. [Merged PR #9](https://github.com/shawkkkkk/beam/pull/9) adds source-only AMM v4 ABI guards, not a tested migration adapter or Token-2022 graduation path. |
-| Apply Beam 42/5/3 fees and preserve creator payouts | **Math done; routing blocked** | PR #5 merged allocation **math only**. Actual Beam collection, creator-fee compatibility, selected payout wallet and post-graduation rights need implementation and runtime tests. Whether creator payouts come from the 0.42% community share or an additional charge is undecided. |
+| Apply Beam 42/5/3 fees and preserve creator payouts | **Math done; routing blocked** | PR #5 merged allocation **math only**. Actual Beam collection, creator-fee compatibility, selected payout wallet and post-graduation rights need implementation and runtime tests. Creator payouts come from the community allocation in the draft AMM v4 route. |
 | Match Pump byte for byte | **Not attainable for modified Beam binary** | The requested venue, Mayhem and fee changes alter code and program identity. The target is tested behavior/interface compatibility for unaffected features, tracked in the [feature matrix](docs/FEATURES.md). |
 
 ### Website and frontend
@@ -61,7 +61,7 @@ for evidence and bounded ways to help with the website, frontend and backend.
 | Founder | 0.03% | 6% |
 | Total | **0.50%** | **100%** |
 
-The requested Beam allocation is 50 nominal basis points with the split shown above. Existing creator payout behavior must be preserved, but whether creator payouts come from the 0.42% community share or are charged in addition is undecided. Therefore 0.50% is **not yet an all-in trading quote**. The allocation engine rounds this component once and gives split dust to the community. Holder rewards and flagship buybacks are proposed uses of the community amount remaining after any creator allocation, if that funding route is chosen. A 50/50 split of that remainder is only a provisional test setting; eligibility, the flagship mint, and distribution rules are undecided. Collection and distribution are not yet wired to trading instructions. Raydium's own pool fees are separate. See [economics](docs/ECONOMICS.md) and the [feature matrix](docs/FEATURES.md).
+The requested Beam allocation is 50 nominal basis points with the split shown above. Existing creator payout behavior must be preserved, but creator payouts come from the 0.42% community allocation in the draft AMM v4 route. Therefore 0.50% is **not yet an all-in trading quote**. The allocation engine rounds this component once and gives split dust to the community. Holder rewards and flagship buybacks are proposed uses of the community amount remaining after any creator allocation, under that funding policy. A 50/50 split of that remainder is only a provisional test setting; eligibility, the flagship mint, and distribution rules are undecided. The draft AMM v4 wrapper collects this component; the inherited curve fee CPI remains separate work. Raydium's own pool fees are separate. See [economics](docs/ECONOMICS.md) and the [feature matrix](docs/FEATURES.md).
 
 ## First contract slice
 

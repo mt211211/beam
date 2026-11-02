@@ -7,8 +7,9 @@ use anchor_lang::prelude::*;
 
 /// Program id still named by retained PumpSwap account constraints.
 /// Quote acceptance does not treat an account owned by this id as a pool.
+#[cfg(test)]
 pub fn historical_program_id() -> Pubkey {
-    crate::pump_quote::AMM
+    anchor_lang::solana_program::pubkey!("pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA")
 }
 
 #[cfg(test)]
@@ -33,9 +34,8 @@ mod tests {
     fn historical_pumpswap_id_is_rejected_as_a_quote_owner() {
         let id = historical_program_id();
         assert_eq!(id.to_string(), "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA");
-        assert_eq!(id, crate::AMM);
-        assert!(include_str!("multi_hop_curve_swap.rs").contains(&id.to_string()));
-        assert!(include_str!("creator/admin_cto.rs").contains(&id.to_string()));
+        assert!(!include_str!("multi_hop_curve_swap.rs").contains(&id.to_string()));
+        assert!(!include_str!("creator/admin_cto.rs").contains(&id.to_string()));
     }
 
     #[test]
@@ -80,7 +80,9 @@ mod tests {
             include_str!("multi_hop_curve_swap.rs"),
             include_str!("creator/admin_cto.rs"),
         ] {
-            assert!(src.contains("crate::beam_policy::legacy_amm()?;"), "handler body is not fail-closed");
+            assert!(src.contains("crate::beam_policy::legacy_amm()"), "handler body is not fail-closed");
+            assert!(!src.contains("pump_amm::"), "foreign CPI binding retained");
+            assert!(!src.contains("seeds::program"), "foreign PDA constraint retained");
         }
     }
 

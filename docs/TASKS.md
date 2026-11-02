@@ -119,3 +119,17 @@ For external contributor listings, copy one bounded scope with its acceptance
 tests and current base commit. A maintainer handles any listing, reward terms,
 and registration separately. Do not open duplicate public issues to imply
 work is available or funded.
+
+## Removal follow-up on PR #36
+
+The regular-GitHub follow-up adds foreign-client/PDA removal, registered AMM v4
+quotes/swaps, native-SOL creator vaults, selected-wallet/sharing plans,
+administrative CTO and donation records. See
+[AMM_V4_COMPANION.md](AMM_V4_COMPANION.md). Creator payouts are now explicitly
+funded from community allocation, superseding older undecided-funding notes.
+
+This follows #36 and carries #23's strict helper. It does not overwrite their
+branches or take over the AMM v4 migration, IDL, SDK/PDA/quote, backend or UI
+owners. Inherited curve fee rehosting and production provider authorization
+remain separate. Tests use synthetic accounts; nothing is deployed or
+submitted through Slop.

@@ -2,7 +2,6 @@
 use crate::trade_types::BondingCurve;
 use crate::{Global, PumpError};
 use anchor_lang::prelude::*;
-pub const AMM: Pubkey = anchor_lang::solana_program::pubkey!("pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA");
 const POOL_DISC: [u8; 8] = [241, 154, 109, 4, 17, 177, 109, 188];
 #[derive(Clone, Copy)]
 pub enum Record {

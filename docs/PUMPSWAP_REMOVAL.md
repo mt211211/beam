@@ -99,3 +99,36 @@ sharing distribution stay in the program. They are not PumpSwap features.
 Host tests do not prove SBF behavior, transaction rollback, or that Anchor's
 constraint checks are skipped. A transaction that fails a PumpSwap PDA
 constraint never reaches the handler error.
+
+## Follow-up: removal and Beam-owned AMM v4 replacements
+
+This follow-up is stacked on PR #36 at
+5c412dbcc5b04def5b8ebb34a09a724488b0331a, and reuses the strict fee allocation
+helper from PR #23. It supersedes the earlier table's remaining foreign
+constraint/CPI bindings; it does not merge either upstream PR.
+
+- PumpSwap and Mayhem generated CPI clients are removed from Beam. Reference
+  IDLs and upstream snapshots remain unchanged.
+- Historical migrate/migrate_v2/router/admin_cto/Mayhem-sync account order and
+  instruction bytes stay compatible. Inert slots reach rejection without
+  owner/PDA reads, mutation or CPI. The router's foreign-PDA signer requirement
+  is removed. Native dispatch tests compare account order/flags with the
+  pinned reference and count zero CPIs.
+- Normal CreateV2 no longer requires Mayhem addresses or foreign PDAs. Its
+  serialized slots and flag remain; Mayhem creation rejects, and all public
+  trade entries reject Mayhem-marked curves.
+- AMM v4 has a registered-pool quote reader and SwapBaseInV2 route. Slippage,
+  explicit fee caps, exact token deltas and rights revisions are enforced.
+- Beam owns creator vaults, selected-wallet and immutable sharing plans,
+  creator succession, dedicated-role administrative CTO and donation
+  recipient/vault accounts. Historical claims keep their original recipients.
+- Creator payouts come from community allocation as requested. No extra
+  creator charge or automatic donation surcharge is introduced.
+- A source scan rejects operational foreign clients, ids and PDA constraints
+  in Beam source, SDK and preview. Historical rejection fixtures are cfg(test).
+
+Still separate: the AMM v4 graduation instruction/LP policy, Token-2022
+graduation, inherited curve fee/sharing rehosting, generated IDL and wallet
+integration, real Raydium/SBF evidence, independent review and release
+authorization. These are not permission to restore PumpSwap. No production
+completion or deployment is claimed.

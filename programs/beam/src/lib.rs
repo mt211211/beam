@@ -80,9 +80,9 @@ use anchor_lang::prelude::*;
 
 
 declare_id!("GdaQ7RHbGKGEL5Px66tQP78S67XcgxYAzFUwja71qSJP"); // Beam development placeholder; not deployed.
-declare_program!(pump_amm);
+// PumpSwap CPI bindings removed.
 declare_program!(pump_fees);
-declare_program!(mayhem);
+// Mayhem CPI bindings removed.
 
 
 // layout-pad: aligns the next Source site with the original lib.rs line
@@ -93,22 +93,22 @@ pub mod pump_recovered {
     pub fn initialize(ctx:Context<Initialize>)->Result<()>{global_init::execute(ctx)} pub fn configure_raydium(ctx: Context<ConfigureRaydium>) -> Result<()> { beam_raydium::configure(ctx) } pub fn set_raydium_enabled(ctx: Context<SetRaydiumEnabled>, enabled: bool) -> Result<()> { beam_raydium::set_enabled(ctx, enabled) } pub fn migrate_raydium<'info>(ctx: Context<'_, '_, '_, 'info, MigrateRaydium<'info>>, setup_budget: u64) -> Result<()> { beam_raydium::execute(ctx, setup_budget) }
     pub fn update_global_authority(ctx:Context<UpdateGlobalAuthority>)->Result<()>{update_global_authority_handler(ctx)}
 // layout-pad: aligns the next Source site with the original lib.rs line
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    pub fn register_amm_v4_rights(ctx: Context<RegisterAmmV4Rights>, market_seed: Pubkey) -> Result<()> { beam_amm_v4_companion::register(ctx, market_seed) }
+    pub fn change_amm_v4_creator(ctx: Context<ChangeAmmV4Creator>, revision: u64) -> Result<()> { beam_amm_v4_companion::change_creator(ctx, revision) }
+    pub fn register_donation_recipient(ctx: Context<RegisterDonationRecipient>) -> Result<()> { beam_amm_v4_companion::register_donation(ctx) }
+    pub fn revoke_donation_recipient(ctx: Context<RevokeDonationRecipient>) -> Result<()> { beam_amm_v4_companion::revoke_donation(ctx) }
+    pub fn select_amm_v4_donation(ctx: Context<SelectAmmV4Donation>, revision: u64) -> Result<()> { beam_amm_v4_companion::select_donation(ctx, revision) }
+    pub fn pause_amm_v4_rights(ctx: Context<PauseAmmV4Rights>, paused: bool, revision: u64) -> Result<()> { beam_amm_v4_companion::pause(ctx, paused, revision) }
+    pub fn fund_amm_v4_vault(ctx: Context<FundAmmV4Vault>, kind: u8, amount: u64, revision: u64) -> Result<()> { beam_amm_v4_companion::fund(ctx, kind, amount, revision) }
+    pub fn claim_amm_v4_vault(ctx: Context<ClaimAmmV4Vault>) -> Result<()> { beam_amm_v4_companion::claim(ctx) }
+    pub fn configure_amm_v4_routing(ctx: Context<ConfigureAmmV4Routing>, community: Pubkey, treasury: Pubkey, founder: Pubkey, creator_bps: u16, revision: u64) -> Result<()> { beam_amm_v4_router::configure(ctx, community, treasury, founder, creator_bps, revision) }
+    pub fn enable_amm_v4_routing(ctx: Context<EnableAmmV4Routing>, enabled: bool, revision: u64) -> Result<()> { beam_amm_v4_router::set_enabled(ctx, enabled, revision) }
+    pub fn swap_amm_v4(ctx: Context<SwapAmmV4>, amount_in: u64, minimum_out: u64, maximum_beam_fee: u64, revision: u64) -> Result<()> { beam_amm_v4_router::swap(ctx, amount_in, minimum_out, maximum_beam_fee, revision) }
+    pub fn create_amm_v4_sharing(ctx: Context<CreateAmmV4Sharing>, recipients: Vec<Pubkey>, basis_points: Vec<u16>, revision: u64) -> Result<()> { beam_amm_v4_sharing::create(ctx, recipients, basis_points, revision) }
+    pub fn select_amm_v4_creator_wallet(ctx: Context<SelectAmmV4CreatorWallet>, revision: u64) -> Result<()> { beam_amm_v4_sharing::select_wallet(ctx, revision) }
+    pub fn distribute_amm_v4_sharing(ctx: Context<DistributeAmmV4Sharing>) -> Result<()> { beam_amm_v4_sharing::distribute(ctx) }
+    pub fn takeover_amm_v4_creator(ctx: Context<TakeoverAmmV4Creator>, expected_creator: Pubkey, revision: u64) -> Result<()> { beam_amm_v4_companion::takeover(ctx, expected_creator, revision) }
+    pub fn update_amm_v4_routing(ctx: Context<EnableAmmV4Routing>, community: Pubkey, treasury: Pubkey, founder: Pubkey, creator_bps: u16, revision: u64) -> Result<()> { beam_amm_v4_router::update_policy(ctx, community, treasury, founder, creator_bps, revision) }
 
     pub fn toggle_create_v2(ctx: Context<AdminGlobal>, enabled: bool) -> Result<()> {
         require_neq!(ctx.accounts.global.create_v2_enabled, enabled, PumpError::NotAuthorized);
@@ -337,7 +337,7 @@ pub mod pump_recovered {
      mint_tokens(a,&a.mint,&a.associated_bonding_curve,ctx.bumps.mint_authority)?;
      revoke_mint_authority(ctx.bumps.mint_authority,&(&a.token_program,&a.mint,&a.mint_authority))?;
      let event=create_event(name,symbol,uri,creator,&a.mint,&a.user,&a.bonding_curve,&a.token_program,false,0)?;
-     
+
      emit!(event);emit_cpi!(event);Ok(())
     }
 // layout-pad
@@ -348,16 +348,16 @@ pub mod pump_recovered {
 // layout-pad
 // layout-pad
     pub fn create_v2<'info>(ctx:Context<'_,'_,'_,'info,CreateV2<'info>>,name:String,symbol:String,uri:String,creator:Pubkey,is_mayhem_mode:bool,is_cashback_enabled:OptionBool,creator_fee_bps:CreationOptionU64,is_holder_reward:OptionBool)->Result<()>{create_v2::execute(ctx,name,symbol,uri,creator,is_mayhem_mode,is_cashback_enabled,creator_fee_bps,is_holder_reward)}
-    #[inline(never)] pub fn buy_v2<'info>(ctx:Context<'_,'_,'_,'info,BuyV2<'info>>,amount:u64,max_sol_cost:u64,partial_fill:OptionBool)->Result<()>{buy_v2::execute(ctx,amount,max_sol_cost,partial_fill.0,false)}
-    #[inline(never)] pub fn buy_exact_quote_in_v2<'info>(ctx:Context<'_,'_,'_,'info,BuyV2<'info>>,spendable_quote_in:u64,min_tokens_out:u64,partial_fill:OptionBool)->Result<()>{buy_v2::execute(ctx,spendable_quote_in,min_tokens_out,partial_fill.0,true)}
-    #[inline(never)]pub fn sell_v2(ctx:Context<SellV2>,amount:u64,min_sol_output:u64)->Result<()>{sell_v2::execute(ctx,amount,min_sol_output)}
-    #[inline(never)]pub fn buy_v3(ctx: Context<SellV3>, amount:u64,max_sol_cost:u64,partial_fill:OptionBool)->Result<()>{trade::buy(ctx,amount,max_sol_cost,partial_fill.0)}
-    #[inline(never)]pub fn buy_exact_quote_in_v3(ctx:Context<SellV3>,spendable_quote_in:u64,min_tokens_out:u64,partial_fill:OptionBool)->Result<()>{trade::buy_exact_quote(ctx,spendable_quote_in,min_tokens_out,partial_fill.0)}
-    #[inline(never)]pub fn sell_v3(ctx: Context<SellV3>, amount: u64, min_sol_output: u64) -> Result<()> { trade::sell(ctx, amount, min_sol_output) }
+    #[inline(never)] pub fn buy_v2<'info>(ctx:Context<'_,'_,'_,'info,BuyV2<'info>>,amount:u64,max_sol_cost:u64,partial_fill:OptionBool)->Result<()>{beam_policy::mayhem(ctx.accounts.bonding_curve.is_mayhem_mode)?;buy_v2::execute(ctx,amount,max_sol_cost,partial_fill.0,false)}
+    #[inline(never)] pub fn buy_exact_quote_in_v2<'info>(ctx:Context<'_,'_,'_,'info,BuyV2<'info>>,spendable_quote_in:u64,min_tokens_out:u64,partial_fill:OptionBool)->Result<()>{beam_policy::mayhem(ctx.accounts.bonding_curve.is_mayhem_mode)?;buy_v2::execute(ctx,spendable_quote_in,min_tokens_out,partial_fill.0,true)}
+    #[inline(never)]pub fn sell_v2(ctx:Context<SellV2>,amount:u64,min_sol_output:u64)->Result<()>{beam_policy::mayhem(ctx.accounts.bonding_curve.is_mayhem_mode)?;sell_v2::execute(ctx,amount,min_sol_output)}
+    #[inline(never)]pub fn buy_v3(ctx: Context<SellV3>, amount:u64,max_sol_cost:u64,partial_fill:OptionBool)->Result<()>{beam_policy::mayhem(ctx.accounts.bonding_curve.is_mayhem_mode)?;trade::buy(ctx,amount,max_sol_cost,partial_fill.0)}
+    #[inline(never)]pub fn buy_exact_quote_in_v3(ctx:Context<SellV3>,spendable_quote_in:u64,min_tokens_out:u64,partial_fill:OptionBool)->Result<()>{beam_policy::mayhem(ctx.accounts.bonding_curve.is_mayhem_mode)?;trade::buy_exact_quote(ctx,spendable_quote_in,min_tokens_out,partial_fill.0)}
+    #[inline(never)]pub fn sell_v3(ctx: Context<SellV3>, amount: u64, min_sol_output: u64) -> Result<()> { beam_policy::mayhem(ctx.accounts.bonding_curve.is_mayhem_mode)?; trade::sell(ctx, amount, min_sol_output) }
     pub fn multi_hop_curve_swap<'info>(ctx:Context<'_,'_,'info,'info,MultiHopCurve<'info>>,amount_in:u64,hop_fees:Vec<u8>)->Result<CurveRunResult>{beam_policy::legacy_amm()?;multi_hop_curve::execute(ctx,amount_in,hop_fees)}
     pub fn sweep_protocol_fee(ctx:Context<SweepFees>)->Result<()>{sweep::execute(ctx,false)}
     pub fn sweep_creator_fee(ctx:Context<SweepFees>)->Result<()>{sweep::execute(ctx,true)}
-    pub fn buy<'info>(ctx:Context<'_,'_,'_,'info,LegacyBuy<'info>>,amount:u64,max_sol_cost:u64,track_volume:OptionBool,partial_fill:OptionBool)->Result<()>{
+    pub fn buy<'info>(ctx:Context<'_,'_,'_,'info,LegacyBuy<'info>>,amount:u64,max_sol_cost:u64,track_volume:OptionBool,partial_fill:OptionBool)->Result<()>{beam_policy::mayhem(ctx.accounts.bonding_curve.is_mayhem_mode)?;
      let fee_recipient=&ctx.accounts.fee_recipient;
      let bonding_curve=&mut ctx.accounts.bonding_curve;let (associated_bonding_curve,associated_user,token_program)=(&ctx.accounts.associated_bonding_curve,&ctx.accounts.associated_user,&ctx.accounts.token_program);
      crate::trade_types::prepare_bonding_curve(bonding_curve,&ctx.accounts.system_program,&ctx.accounts.user)?;
@@ -813,8 +813,8 @@ pub mod pump_recovered {
      }
      Ok(())
     }
-    pub fn buy_exact_sol_in<'info>(ctx:Context<'_,'_,'_,'info,LegacyBuy<'info>>,spendable_sol_in:u64,min_tokens_out:u64,track_volume:OptionBool,partial_fill:OptionBool)->Result<()>{legacy_buy::buy_exact_sol_in(ctx,spendable_sol_in,min_tokens_out,track_volume,partial_fill)}
-    pub fn sell<'info>(ctx:Context<'_,'_,'info,'info,LegacySell<'info>>,amount:u64,min_sol_output:u64)->Result<()>{let minimum=min_sol_output;
+    pub fn buy_exact_sol_in<'info>(ctx:Context<'_,'_,'_,'info,LegacyBuy<'info>>,spendable_sol_in:u64,min_tokens_out:u64,track_volume:OptionBool,partial_fill:OptionBool)->Result<()>{beam_policy::mayhem(ctx.accounts.bonding_curve.is_mayhem_mode)?;legacy_buy::buy_exact_sol_in(ctx,spendable_sol_in,min_tokens_out,track_volume,partial_fill)}
+    pub fn sell<'info>(ctx:Context<'_,'_,'info,'info,LegacySell<'info>>,amount:u64,min_sol_output:u64)->Result<()>{beam_policy::mayhem(ctx.accounts.bonding_curve.is_mayhem_mode)?;let minimum=min_sol_output;
      let fee_recipient=&ctx.accounts.fee_recipient;let user=&ctx.accounts.user;
      let bonding_curve=&mut ctx.accounts.bonding_curve;let (associated_bonding_curve,associated_user,token_program)=(&ctx.accounts.associated_bonding_curve,&ctx.accounts.associated_user,&ctx.accounts.token_program);
      crate::trade_types::prepare_bonding_curve(bonding_curve,&ctx.accounts.system_program,user)?;
@@ -3219,5 +3219,16 @@ pub mod beam_policy;
 pub mod beam_economics;
 pub mod beam_amm_v4;
 pub mod beam_raydium;
-pub mod beam_pumpswap;
+#[cfg(test)] pub mod beam_pumpswap;
 pub use beam_raydium::*;
+
+pub mod beam_amm_v4_companion;
+pub use beam_amm_v4_companion::*;
+
+pub mod beam_amm_v4_router;
+pub use beam_amm_v4_router::*;
+
+pub mod beam_amm_v4_quote;
+
+pub mod beam_amm_v4_sharing;
+pub use beam_amm_v4_sharing::*;

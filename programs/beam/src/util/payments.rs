@@ -1,23 +1,23 @@
 use anchor_lang::prelude::*;use anchor_spl::token_interface::{self,Mint,TokenAccount,TokenInterface,TransferChecked};use anchor_lang::solana_program::{instruction::{Instruction,AccountMeta},program::{invoke,invoke_signed},program_error::ProgramError};
-use crate::create_v2::{CreateV2,mayhem_interface};use crate::*;use crate::trade_types::{BondingCurve,TradeEvent,Shareholder};use crate::pump_fees::accounts::SharingConfig;
+use crate::create_v2::CreateV2;use crate::*;use crate::trade_types::{BondingCurve,TradeEvent,Shareholder};use crate::pump_fees::accounts::SharingConfig;
 
-#[inline(never)]pub fn initialize_mayhem<'info>(ctx:&Context<'_, '_, '_, 'info, CreateV2<'info>>)->Result<()>{
- let a=&ctx.accounts;
- mayhem_interface::cpi::initialize_mayhem_state(CpiContext::new_with_signer(
-  a.mayhem_program_id.to_account_info(),mayhem_interface::cpi::accounts::InitializeMayhemState{
-   payer:a.user.to_account_info(),
-   mint_authority:a.mint_authority.to_account_info(),
-   sol_vault:a.sol_vault.to_account_info(),
-   mint:a.mint.to_account_info(),
-   token_vault:a.mayhem_token_vault.to_account_info(),
-   global_params:a.global_params.to_account_info(),
-   mayhem_state:a.mayhem_state.to_account_info(),
-   system_program:a.system_program.to_account_info(),
-   token_program:a.token_program.to_account_info(),
-   associated_token_program:a.associated_token_program.to_account_info(),
-  },&[&[b"mint-authority",&[ctx.bumps.mint_authority]]],
- ))
+#[inline(never)]pub fn initialize_mayhem<'info>(_ctx:&Context<'_, '_, '_, 'info, CreateV2<'info>>)->Result<()>{
+ crate::beam_policy::mayhem(true)
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 impl AnchorDeserialize for OptionBool {
  fn deserialize_reader<R:std::io::Read>(reader:&mut R)->std::io::Result<Self>{
   let mut b=[0u8];match reader.read_exact(&mut b){Err(e) if e.kind()==std::io::ErrorKind::UnexpectedEof=>Ok(Self(false)),Err(e)=>Err(e),Ok(())=>match b[0]{0=>Ok(Self(false)),1=>Ok(Self(true)),value=>Err(std::io::Error::new(std::io::ErrorKind::InvalidData,format!("Invalid bool representation: {}",value)))}}

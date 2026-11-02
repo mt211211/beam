@@ -1,0 +1,22 @@
+[package]
+name = "beam-companion-runtime"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[features]
+default = []
+experimental-raydium = ["beam-program/experimental-raydium"]
+
+[dependencies]
+anchor-lang = "=0.31.1"
+anchor-spl = "=0.31.1"
+openssl = { version = "=0.10.81", features = ["vendored"] }
+beam-program = { path = "../../programs/beam" }
+solana-program-test = "=2.2.1"
+solana-sdk = "=2.2.1"
+tokio = { version = "=1.43.0", features = ["macros", "rt-multi-thread"] }
+
+[workspace]
+
+# Source-built OpenSSL keeps this isolated test crate portable on Windows.

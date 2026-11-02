@@ -14,7 +14,7 @@ fn encoded_curve(vt: u64, vq: u64) -> Vec<u8> {
 }
 fn result<T: std::fmt::Debug>(r: anchor_lang::Result<T>) -> String {
     match r { Ok(v) => format!("ok:{v:?}"), Err(anchor_lang::error::Error::AnchorError(e)) => {
-            let source = match e.error_origin { Some(anchor_lang::error::ErrorOrigin::Source(s)) => Some((s.filename.rsplit('/').next().unwrap().to_string(),s.line)), _ => None };
+            let source = match e.error_origin { Some(anchor_lang::error::ErrorOrigin::Source(s)) => Some((s.filename.rsplit(['/', '\\']).next().unwrap().to_string(),s.line)), _ => None };
             format!("err:{}:{}:{}:{:?}:{source:?}",e.error_name,e.error_code_number,e.error_msg,e.compared_values)
         },
         Err(anchor_lang::error::Error::ProgramError(e)) => format!("program:{:?}:{:?}",e.program_error,e.compared_values) }

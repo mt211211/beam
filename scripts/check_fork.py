@@ -18,7 +18,7 @@ for path, expected in manifest["raydium"]["files"].items():
         raise SystemExit(f"Pristine Raydium reference changed: {path}")
 original, fork = snapshot / "programs/pump", ROOT / "programs/beam"
 changed, unchanged = [], 0
-original_paths = {str(p.relative_to(original)) for p in original.rglob("*") if p.is_file()}
+original_paths = {p.relative_to(original).as_posix() for p in original.rglob("*") if p.is_file()}
 for path in sorted(original_paths):
     p = fork / path
     if not p.is_file():
@@ -31,7 +31,7 @@ for path in sorted(original_paths):
         unchanged += 1
 for p in fork.rglob("*"):
     if p.is_file() and "target" not in p.parts:
-        path = str(p.relative_to(fork))
+        path = p.relative_to(fork).as_posix()
         if path not in original_paths and path not in manifest["allowed_added_paths"]:
             raise SystemExit(f"Unapproved addition: {path}")
 print(f"Pristine archive: {len(files)} Git blobs verified at {manifest['pumpfun']['commit']}")
