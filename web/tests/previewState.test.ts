@@ -91,6 +91,52 @@ test("new drafts remain before sample tokens and repeated IDs stay unique", () =
   assert.deepEqual(toggleWatchlist(toggleWatchlist([], id), id), []);
 });
 
+test("a full watchlist retains recent additions across storage reloads", () => {
+  const initial = Array.from({ length: 1000 }, (_, index) => `token-${index}`);
+  const values = new Map<string, string>();
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      values.set(key, value);
+    },
+  };
+  assert.deepEqual(
+    toggleWatchlist(initial.slice(0, 999), "token-999"),
+    initial,
+  );
+  let saved = initial;
+  for (let index = 1000; index < 1010; index++) {
+    saved = toggleWatchlist(saved, `token-${index}`);
+    assert.equal(writeWatchlist(storage, saved), true);
+    saved = readWatchlist(storage);
+    assert.equal(saved.length, 1000);
+    assert.equal(saved[0], `token-${index - 999}`);
+    assert.equal(saved.at(-1), `token-${index}`);
+  }
+  assert.deepEqual(
+    initial,
+    Array.from({ length: 1000 }, (_, i) => `token-${i}`),
+  );
+  assert.deepEqual(
+    saved,
+    Array.from({ length: 1000 }, (_, i) => `token-${i + 10}`),
+  );
+
+  // Removing from a full list must not evict an additional entry.
+  saved = toggleWatchlist(saved, "token-500");
+  assert.equal(writeWatchlist(storage, saved), true);
+  assert.deepEqual(readWatchlist(storage), saved);
+  assert.equal(saved.length, 999);
+  assert.equal(saved.includes("token-500"), false);
+  assert.equal(saved[0], "token-10");
+  assert.equal(saved.at(-1), "token-1009");
+  saved = toggleWatchlist(readWatchlist(storage), "token-500");
+  assert.equal(saved.length, 1000);
+  assert.equal(saved.at(-1), "token-500");
+  assert.equal(writeWatchlist(storage, saved), true);
+  assert.deepEqual(readWatchlist(storage), saved);
+});
+
 test("CreateV2 metadata limits count UTF-8 bytes", () => {
   assert.equal(
     validateCreateV2Metadata("é".repeat(16), "BEAM", "u".repeat(200)),

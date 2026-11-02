@@ -1,6 +1,8 @@
 export const WATCHLIST_KEY = "beam-watchlist";
 export const DRAFTS_KEY = "beam-local-drafts";
 
+const WATCHLIST_LIMIT = 1000;
+
 export type DraftRecord = {
   id: string;
   name: string;
@@ -77,7 +79,7 @@ export function parseWatchlist(raw: string | null): string[] {
     const value: unknown = JSON.parse(raw);
     if (
       !Array.isArray(value) ||
-      value.length > 1000 ||
+      value.length > WATCHLIST_LIMIT ||
       !value.every(
         (id) => typeof id === "string" && id.length > 0 && id.length <= 128,
       )
@@ -198,7 +200,9 @@ export function nextDraftId(
 }
 
 export function toggleWatchlist(ids: string[], id: string): string[] {
-  return ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id];
+  return ids.includes(id)
+    ? ids.filter((item) => item !== id)
+    : [...ids, id].slice(-WATCHLIST_LIMIT);
 }
 
 export function orderNewFeed<T>(drafts: T[], samples: T[]): T[] {
